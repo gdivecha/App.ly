@@ -1,7 +1,20 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { Client, Collection, GatewayIntentBits, Partials, Events, ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
+const {
+  Client,
+  Collection,
+  GatewayIntentBits,
+  Partials,
+  Events,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
+} = require('discord.js');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -9,6 +22,7 @@ const client = new Client({
 });
 
 client.commands = new Collection();
+client.jobDescriptions = {};
 
 // Load all commands
 const commandsPath = path.join(__dirname, 'commands');
@@ -28,7 +42,6 @@ client.on(Events.InteractionCreate, async interaction => {
     const command = client.commands.get(interaction.commandName);
     if (!command) return;
 
-    // Show modal for job description
     if (interaction.commandName === 'postjob') {
       const modal = new ModalBuilder()
         .setCustomId('jobDescriptionModal')
@@ -42,12 +55,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
       const firstRow = new ActionRowBuilder().addComponents(descriptionInput);
       modal.addComponents(firstRow);
-      await interaction.showModal(modal);
 
-      // Store the original interaction for follow-up (not needed if using ephemeral or database)
       client.cachedPostData = interaction;
+      await interaction.showModal(modal);
     }
-  } else if (interaction.isModalSubmit()) {
+  }
+
+  else if (interaction.isModalSubmit()) {
     if (interaction.customId === 'jobDescriptionModal') {
       const jobDescription = interaction.fields.getTextInputValue('jobDescriptionInput');
       const data = client.cachedPostData;
@@ -64,44 +78,48 @@ client.on(Events.InteractionCreate, async interaction => {
       const salary = data.options.getString('salary') || 'N/A';
 
       const embed = new EmbedBuilder()
-        .setTitle(`${position}`)
+        .setTitle(position)
         .setDescription([
-          `**Company:** ${company}`,
-          `**Type:** ${type}`,
-          `**Location:** ${location}`,
-          `**Link:** ${link}`,
-          `**Job ID:** ${jobId}`,
-          `**Applied:** ${numberApplied}`,
-          `**Term:** ${term}`,
-          `**Duration (Months):** ${duration}`,
-          `**Salary:** ${salary}`
+          `__**Company:**__ ${company}`,
+          `__**Employment Type:**__ ${type}`,
+          `__**Location:**__ ${location}`,
+          `__**Link:**__ ${link}`,
+          `__**Job ID:**__ ${jobId}`,
+          `__**Applied:**__ ${numberApplied}`,
+          `__**Term:**__ ${term}`,
+          `__**Duration (Months):**__ ${duration}`,
+          `__**Salary:**__ ${salary}`
         ].join('\n'))
-        .setColor(0xFFA500);
+        .setColor(0x1E90FF);
 
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('jobDescriptionDropdown')
-        .setPlaceholder('View Job Description')
-        .addOptions([{
-          label: 'Job Description',
-          description: jobDescription.substring(0, 100),
-          value: 'job_desc',
-        }]);
+      const button = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('view_description')
+          .setLabel('📄 View Job Description')
+          .setStyle(ButtonStyle.Primary)
+      );
 
-      const row = new ActionRowBuilder().addComponents(selectMenu);
+      client.jobDescriptions[interaction.id] = jobDescription;
 
       await interaction.reply({
-        content: `Posted by <@${data.user.id}> • <t:${Math.floor(Date.now() / 1000)}:t>`,
+        content: `Posted by <@${data.user.id}> • <t:${Math.floor(Date.now() / 1000)}:F>`,
         embeds: [embed],
-        components: [row]
+        components: [button]
       });
     }
-  } else if (interaction.isStringSelectMenu()) {
-    if (interaction.customId === 'jobDescriptionDropdown') {
-      await interaction.reply({
-        content: `**Job Description:**\n${interaction.message.components[0].components[0].data.options[0].description}`,
-        ephemeral: true
-      });
-    }
+  }
+
+  else if (interaction.isButton() && interaction.customId === 'view_description') {
+    const jobDescription = client.jobDescriptions[interaction.message.interaction.id] || 'No description available.';
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle('📄 Job Description')
+          .setDescription(jobDescription)
+          .setColor(0x1E90FF)
+      ],
+      ephemeral: true
+    });
   }
 });
 
