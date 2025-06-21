@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, StringSelectMenuBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,37 +16,35 @@ module.exports = {
     .addStringOption(option => option.setName('salary').setDescription('Salary')),
 
   async execute(interaction) {
-    const modal = new ModalBuilder()
-      .setCustomId('jobDescriptionModal')
-      .setTitle('Enter Job Description');
+    const position = interaction.options.getString('position');
+    const company = interaction.options.getString('company');
+    const type = interaction.options.getString('type');
+    const location = interaction.options.getString('location');
+    const link = interaction.options.getString('link');
+    const jobId = interaction.options.getString('jobid') || 'N/A';
+    const numberApplied = interaction.options.getString('numberapplied') || 'N/A';
+    const term = interaction.options.getString('term') || 'N/A';
+    const duration = interaction.options.getString('duration') || 'N/A';
+    const salary = interaction.options.getString('salary') || 'N/A';
 
-    const descriptionInput = new TextInputBuilder()
-      .setCustomId('jobdescription')
-      .setLabel('Job Description')
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true);
+    const embed = new EmbedBuilder()
+      .setTitle(position)
+      .setDescription([
+        `__**Company:**__ ${company}`,
+        `__**Employment Type:**__ ${type}`,
+        `__**Location:**__ ${location}`,
+        `__**Link:**__ ${link}`,
+        `__**Job ID:**__ ${jobId}`,
+        `__**Applied:**__ ${numberApplied}`,
+        `__**Term:**__ ${term}`,
+        `__**Duration (Months):**__ ${duration}`,
+        `__**Salary:**__ ${salary}`
+      ].join('\n'))
+      .setColor(0x1E90FF);
 
-    const row = new ActionRowBuilder().addComponents(descriptionInput);
-    modal.addComponents(row);
-
-    // Temporarily store values in interaction for use after modal submit
-    interaction.client.tempJobData = {
-      userId: interaction.user.id,
-      timestamp: Math.floor(Date.now() / 1000),
-      values: {
-        position: interaction.options.getString('position'),
-        company: interaction.options.getString('company'),
-        type: interaction.options.getString('type'),
-        location: interaction.options.getString('location'),
-        link: interaction.options.getString('link'),
-        jobId: interaction.options.getString('jobid') || 'N/A',
-        numberApplied: interaction.options.getString('numberapplied') || 'N/A',
-        term: interaction.options.getString('term') || 'N/A',
-        duration: interaction.options.getString('duration') || 'N/A',
-        salary: interaction.options.getString('salary') || 'N/A'
-      }
-    };
-
-    await interaction.showModal(modal);
+    await interaction.reply({
+      content: `Posted by <@${interaction.user.id}> • <t:${Math.floor(Date.now() / 1000)}:F>`,
+      embeds: [embed]
+    });
   }
 };
