@@ -8,10 +8,12 @@ module.exports = {
       option.setName('user').setDescription('Filter by user (optional)')
     )
     .addStringOption(option =>
-      option.setName('startdate').setDescription('Start date (YYYY-MM-DD)')
+      option.setName('startdate')
+        .setDescription('Start date (YYYY-MM-DD)')
+        .setRequired(true)
     )
     .addStringOption(option =>
-      option.setName('enddate').setDescription('End date (YYYY-MM-DD)')
+      option.setName('enddate').setDescription('End date (YYYY-MM-DD, optional)')
     ),
 
   async execute(interaction) {
@@ -19,8 +21,17 @@ module.exports = {
 
     const channel = interaction.channel;
     const targetUser = interaction.options.getUser('user');
-    const startDate = new Date(interaction.options.getString('startdate'));
-    const endDate = new Date(interaction.options.getString('enddate'));
+    const startDateStr = interaction.options.getString('startdate');
+    const endDateStr = interaction.options.getString('enddate');
+
+    const startDate = new Date(startDateStr);
+    const endDate = endDateStr
+      ? new Date(endDateStr)
+      : new Date(new Date().setDate(new Date().getDate() + 1)); // tomorrow
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return await interaction.editReply('❌ Invalid date format. Please use `YYYY-MM-DD`.');
+    }
 
     const messages = await channel.messages.fetch({ limit: 100 });
     let filteredMessages = messages.filter(msg => msg.author.bot && msg.embeds.length > 0);
@@ -29,13 +40,9 @@ module.exports = {
       filteredMessages = filteredMessages.filter(msg => msg.content.includes(`<@${targetUser.id}>`));
     }
 
-    if (!isNaN(startDate)) {
-      filteredMessages = filteredMessages.filter(msg => msg.createdAt >= startDate);
-    }
-
-    if (!isNaN(endDate)) {
-      filteredMessages = filteredMessages.filter(msg => msg.createdAt <= endDate);
-    }
+    filteredMessages = filteredMessages.filter(
+      msg => msg.createdAt >= startDate && msg.createdAt <= endDate
+    );
 
     const count = filteredMessages.size;
 
@@ -43,8 +50,8 @@ module.exports = {
       .setTitle('📊 Job Posting Stats')
       .addFields(
         { name: 'User', value: targetUser ? `<@${targetUser.id}>` : 'All users', inline: true },
-        { name: 'Start Date', value: isNaN(startDate) ? 'N/A' : startDate.toDateString(), inline: true },
-        { name: 'End Date', value: isNaN(endDate) ? 'N/A' : endDate.toDateString(), inline: true },
+        { name: 'Start Date', value: startDate.toDateString(), inline: true },
+        { name: 'End Date', value: endDate.toDateString(), inline: true },
         { name: 'Total Jobs Posted', value: count.toString(), inline: true }
       )
       .setColor(0x1E90FF);
