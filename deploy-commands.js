@@ -24,7 +24,7 @@ const rest = new REST().setToken(process.env.DISCORD_TOKEN);
     console.log(`🔁 Refreshing ${commands.length} application (/) commands...`);
 
     await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID),
+      Routes.applicationGuildCommands(process.env.DISCORD_CLIENT_ID, process.env.DISCORD_GUILD_ID),
       { body: commands }
     );
 
