@@ -1,5 +1,5 @@
 // commands/rivals.js
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,7 +10,6 @@ module.exports = {
     await interaction.deferReply();
 
     const channel = interaction.channel;
-    const now = new Date();
     const messages = await channel.messages.fetch({ limit: 100 });
 
     const filtered = messages.filter(msg =>
@@ -25,39 +24,42 @@ module.exports = {
       const match = msg.content.match(/<@!?(\d+)>/);
       if (!match) continue;
       const userId = match[1];
-      if (!userStats[userId]) {
-        userStats[userId] = 0;
-      }
-      userStats[userId]++;
+      userStats[userId] = (userStats[userId] || 0) + 1;
     }
 
-    const sorted = Object.entries(userStats)
-      .sort((a, b) => b[1] - a[1]);
-
+    const sorted = Object.entries(userStats).sort((a, b) => b[1] - a[1]);
     const userId = interaction.user.id;
     const index = sorted.findIndex(([id]) => id === userId);
 
     if (index === -1) {
-      await interaction.editReply("You haven't posted any jobs yet to have rivals.");
-      return;
+      return interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('🤖 No Rivals Yet!')
+            .setDescription("You haven't posted any jobs yet to have rivals.")
+            .setColor(0xFF6347)
+        ]
+      });
     }
 
     const above = sorted[index - 1];
+    const current = sorted[index];
     const below = sorted[index + 1];
-    let reply = `📊 Your current rank: **#${index + 1}** with **${sorted[index][1]}** posts\n\n`;
 
-    if (above) {
-      reply += `⬆️ Just above: <@${above[0]}> — ${above[1]} posts\n`;
-    } else {
-      reply += `👑 You're at the top!\n`;
-    }
+    const embed = new EmbedBuilder()
+      .setTitle('📊 Job Rivals')
+      .setColor(0x00AEFF)
+      .setDescription(`Your current rank: **#${index + 1}** with **${current[1]}** post${current[1] !== 1 ? 's' : ''}`)
+      .addFields(
+        above
+          ? { name: '⬆️ Just above you', value: `<@${above[0]}> — ${above[1]} post${above[1] !== 1 ? 's' : ''}`, inline: false }
+          : { name: '👑 You\'re at the top!', value: 'No one above you!', inline: false },
+        below
+          ? { name: '⬇️ Just below you', value: `<@${below[0]}> — ${below[1]} post${below[1] !== 1 ? 's' : ''}`, inline: false }
+          : { name: '🎉 You\'re untouchable!', value: 'No one is close behind.', inline: false }
+      )
+      .setFooter({ text: 'Keep posting to stay ahead!' });
 
-    if (below) {
-      reply += `⬇️ Just below: <@${below[0]}> — ${below[1]} posts`;
-    } else {
-      reply += `🎉 No one's catching up to you (yet)!`;
-    }
-
-    await interaction.editReply(reply);
+    await interaction.editReply({ embeds: [embed] });
   }
 };
