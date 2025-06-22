@@ -8,13 +8,10 @@ module.exports = {
       option.setName('user').setDescription('Filter by user (optional)')
     )
     .addStringOption(option =>
-      option.setName('startdate')
-        .setDescription('Start date (YYYY-MM-DD)')
-        .setRequired(true)
+      option.setName('startdate').setDescription('Start date (YYYY-MM-DD, optional)')
     )
     .addStringOption(option =>
-      option.setName('enddate')
-        .setDescription('End date (YYYY-MM-DD, optional)')
+      option.setName('enddate').setDescription('End date (YYYY-MM-DD, optional)')
     ),
 
   async execute(interaction) {
@@ -25,21 +22,22 @@ module.exports = {
     const startDateStr = interaction.options.getString('startdate');
     const endDateStr = interaction.options.getString('enddate');
 
-    const startDate = new Date(startDateStr);
+    const defaultStartDate = new Date('2023-12-19');
+    const startDate = startDateStr ? new Date(startDateStr) : defaultStartDate;
     const endDate = endDateStr
       ? new Date(endDateStr)
-      : new Date(new Date().setDate(new Date().getDate() + 1)); // default to tomorrow
+      : new Date(new Date().setDate(new Date().getDate() + 1)); // tomorrow
 
     if (isNaN(startDate) || isNaN(endDate)) {
-      return await interaction.editReply('❌ Invalid date format. Use `YYYY-MM-DD`.');
+      return await interaction.editReply('❌ Invalid date format. Please use `YYYY-MM-DD`.');
     }
 
     const messages = await channel.messages.fetch({ limit: 100 });
-
-    let filteredMessages = messages.filter(msg =>
-      msg.author.bot &&
-      msg.embeds.length > 0 &&
-      msg.content.startsWith('New Job posted by')
+    let filteredMessages = messages.filter(
+      msg =>
+        msg.author.bot &&
+        msg.embeds.length > 0 &&
+        msg.content.startsWith('Posted by') // <- important: only count job posts
     );
 
     if (targetUser) {
