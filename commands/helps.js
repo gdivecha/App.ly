@@ -31,6 +31,7 @@ module.exports = {
 **Example:**
 \`/postjob position: SDE Intern company: Amazon location: Remote employmentType: Internship link: https://...\`\u200B`
         },
+        { name: '\u200B', value: '\u200B' },
         {
           name: '📈 /leaderboard',
           value: `**Purpose:** See the top contributors who’ve posted the most jobs.
@@ -43,6 +44,7 @@ module.exports = {
 \`/leaderboard range: lastweek\`  
 This displays a ranked list of the top 10 posters with stats like total jobs, reactions, averages, etc.\u200B`
         },
+        { name: '\u200B', value: '\u200B' },
         {
           name: '📊 /stats',
           value: `**Purpose:** View your personal job posting stats.
@@ -57,6 +59,7 @@ This displays a ranked list of the top 10 posters with stats like total jobs, re
 \`/stats\`  
 Returns a personalized report on your contributions.\u200B`
         },
+        { name: '\u200B', value: '\u200B' },
         {
           name: '🏆 /rivals',
           value: `**Purpose:** See who’s ranked right above and below you on the leaderboard.
@@ -66,7 +69,8 @@ Returns a personalized report on your contributions.\u200B`
 **Example:**
 \`/rivals\`  
 This helps you stay competitive by highlighting your nearest rivals.\u200B`
-        }
+        },
+        { name: '\u200B', value: '\u200B' }
       )
       .setFooter({ text: 'Stay competitive. Post jobs. Climb the leaderboard. 🧠' });
 
