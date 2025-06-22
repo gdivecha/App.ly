@@ -89,7 +89,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('📈 Job Posting Leaderboard')
+      .setTitle('🏆 Job Posting Leaderboard')
       .setDescription(description)
       .setColor(0x1E90FF)
       .setFooter({ text: `Range: ${range === 'lastweek' ? 'Last 7 Days' : range === 'today' ? 'Today' : 'All Time'}` });
