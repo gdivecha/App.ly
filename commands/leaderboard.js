@@ -29,21 +29,54 @@ module.exports = {
       (range === 'alltime' || msg.createdAt >= oneWeekAgo)
     );
 
-    const countByUser = {};
+    const userStats = {};
+
     for (const msg of filtered.values()) {
-      const match = msg.content.match(/<@(\d+)>/);
-      if (match) {
-        const userId = match[1];
-        countByUser[userId] = (countByUser[userId] || 0) + 1;
+      const match = msg.content.match(/<@!?(\d+)>/);
+      if (!match) continue;
+      const userId = match[1];
+      if (!userStats[userId]) {
+        userStats[userId] = {
+          postCount: 0,
+          lastPost: msg.createdAt,
+          totalReactions: 0
+        };
+      }
+      userStats[userId].postCount++;
+      if (msg.createdAt > userStats[userId].lastPost) {
+        userStats[userId].lastPost = msg.createdAt;
+      }
+
+      const checkmarkReaction = msg.reactions.cache.get('✅');
+      if (checkmarkReaction) {
+        try {
+          const users = await checkmarkReaction.users.fetch();
+          const validUsers = users.filter(u => !u.bot && u.id !== userId);
+          userStats[userId].totalReactions += validUsers.size;
+        } catch (err) {
+          console.error('Reaction fetch error:', err);
+        }
       }
     }
 
-    const sorted = Object.entries(countByUser).sort((a, b) => b[1] - a[1]);
+    const sorted = Object.entries(userStats).sort((a, b) => b[1].postCount - a[1].postCount);
 
     let description = '';
     for (let i = 0; i < sorted.length; i++) {
-      const [userId, count] = sorted[i];
-      description += `**#${i + 1}** <@${userId}>\n${count} job posting${count !== 1 ? 's' : ''}\n\n`;
+      const [userId, stats] = sorted[i];
+      const daysAgo = Math.floor((now - stats.lastPost) / (1000 * 60 * 60 * 24));
+      const minutesAgo = Math.floor((now - stats.lastPost) / (1000 * 60)) % 60;
+      const timeAgo = `${daysAgo > 0 ? `${daysAgo}d ` : ''}${minutesAgo}m ago`;
+
+      description += `**#${i + 1}** <@${userId}>
+` +
+        `🧾 ${stats.postCount} post${stats.postCount !== 1 ? 's' : ''}
+` +
+        `✅ ${stats.totalReactions} total applicant${stats.totalReactions !== 1 ? 's' : ''}
+` +
+        `⏱️ Last posted ${timeAgo}
+
+`;
     }
 
     const embed = new EmbedBuilder()
