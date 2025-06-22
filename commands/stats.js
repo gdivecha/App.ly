@@ -4,16 +4,17 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('stats')
     .setDescription('View job application statistics')
+    .addUserOption(option =>
+      option.setName('user').setDescription('Filter by user (optional)')
+    )
     .addStringOption(option =>
       option.setName('startdate')
         .setDescription('Start date (YYYY-MM-DD)')
         .setRequired(true)
     )
-    .addUserOption(option =>
-      option.setName('user').setDescription('Filter by user (optional)')
-    )
     .addStringOption(option =>
-      option.setName('enddate').setDescription('End date (YYYY-MM-DD, optional)')
+      option.setName('enddate')
+        .setDescription('End date (YYYY-MM-DD, optional)')
     ),
 
   async execute(interaction) {
@@ -30,14 +31,21 @@ module.exports = {
       : new Date(new Date().setDate(new Date().getDate() + 1)); // default to tomorrow
 
     if (isNaN(startDate) || isNaN(endDate)) {
-      return await interaction.editReply('❌ Invalid date format. Please use `YYYY-MM-DD`.');
+      return await interaction.editReply('❌ Invalid date format. Use `YYYY-MM-DD`.');
     }
 
     const messages = await channel.messages.fetch({ limit: 100 });
-    let filteredMessages = messages.filter(msg => msg.author.bot && msg.embeds.length > 0);
+
+    let filteredMessages = messages.filter(msg =>
+      msg.author.bot &&
+      msg.embeds.length > 0 &&
+      msg.content.startsWith('New Job posted by')
+    );
 
     if (targetUser) {
-      filteredMessages = filteredMessages.filter(msg => msg.content.includes(`<@${targetUser.id}>`));
+      filteredMessages = filteredMessages.filter(msg =>
+        msg.content.includes(`<@${targetUser.id}>`)
+      );
     }
 
     filteredMessages = filteredMessages.filter(

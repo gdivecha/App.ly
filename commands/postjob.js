@@ -43,7 +43,7 @@ module.exports = {
       .setColor(0x1E90FF);
 
     await interaction.reply({
-      content: `Posted by <@${interaction.user.id}> • <t:${Math.floor(Date.now() / 1000)}:F>`,
+      content: `New Job posted by <@${interaction.user.id}> • <t:${Math.floor(Date.now() / 1000)}:F>`,
       embeds: [embed]
     });
   }
