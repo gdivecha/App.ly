@@ -89,7 +89,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('📊 Job Posting Leaderboard')
+      .setTitle('🏆 Job Posting Leaderboard')
       .setDescription(description || 'No data available.')
       .setColor(0x00BFFF)
       .setFooter({ text: `Range: ${range === 'lastweek' ? 'Last 7 Days' : 'All Time'}` });
