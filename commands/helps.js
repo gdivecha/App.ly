@@ -4,8 +4,9 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Detailed guide for using every command in the job bot'),
-
+    .setDescription(`Detailed guide for using every command in the job bot
+        
+        `),
   async execute(interaction) {
     const embed = new EmbedBuilder()
       .setTitle('📘 Job Bot Help Menu')
@@ -30,6 +31,7 @@ module.exports = {
 - **Job Description**: Entered in a modal popup when the command runs.
 **Example:**
 \`/postjob position: SDE Intern company: Amazon location: Remote employmentType: Internship link: https://...\`
+
 `
         },
         {
@@ -43,6 +45,7 @@ module.exports = {
 **Example:**
 \`/leaderboard range: lastweek\`  
 This displays a ranked list of the top 10 posters with stats like total jobs, reactions, averages, etc.
+
 `
         },
         {
@@ -58,6 +61,7 @@ This displays a ranked list of the top 10 posters with stats like total jobs, re
 **Example:**
 \`/stats\`  
 Returns a personalized report on your contributions.
+
 `
         },
         {
@@ -69,6 +73,7 @@ Returns a personalized report on your contributions.
 **Example:**
 \`/rivals\`  
 This helps you stay competitive by highlighting your nearest rivals.
+
 `
         }
       )
