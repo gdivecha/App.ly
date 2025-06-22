@@ -13,7 +13,7 @@ for (const file of commandFiles) {
 }
 
 // Deploy
-const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
   try {
