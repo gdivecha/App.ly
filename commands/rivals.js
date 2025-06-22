@@ -47,7 +47,7 @@ module.exports = {
     const below = sorted[index + 1];
 
     const embed = new EmbedBuilder()
-      .setTitle('📊 Job Rivals')
+      .setTitle('🥊 Job Rivals')
       .setColor(0x00AEFF)
       .setDescription(`Your current rank: **#${index + 1}** with **${current[1]}** post${current[1] !== 1 ? 's' : ''}`)
       .addFields(
