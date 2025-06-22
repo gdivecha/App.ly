@@ -67,8 +67,16 @@ module.exports = {
       if (checkmarkReaction) {
         try {
           const users = await checkmarkReaction.users.fetch();
-          const nonBotUsers = users.filter(user => !user.bot);
-          totalReactions += nonBotUsers.size;
+
+          // Extract the poster's user ID from the message content
+          const posterMatch = msg.content.match(/<@!?(\d+)>/);
+          const posterId = posterMatch ? posterMatch[1] : null;
+
+          const validReactions = users.filter(user =>
+            !user.bot && user.id !== posterId
+          );
+
+          totalReactions += validReactions.size;
         } catch (err) {
           console.error(`Error fetching reaction users: ${err}`);
         }
