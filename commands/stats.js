@@ -22,7 +22,7 @@ module.exports = {
     const startDateStr = interaction.options.getString('startdate');
     const endDateStr = interaction.options.getString('enddate');
 
-    const defaultStartDate = new Date('2023-12-19');
+    const defaultStartDate = new Date('2025-06-20');
     const startDate = startDateStr ? new Date(startDateStr) : defaultStartDate;
     const endDate = endDateStr
       ? new Date(endDateStr)
@@ -65,7 +65,13 @@ module.exports = {
     for (const msg of filteredMessages.values()) {
       const checkmarkReaction = msg.reactions.cache.get('✅');
       if (checkmarkReaction) {
-        totalReactions += checkmarkReaction.count - 1; // subtract the bot's own ✅
+        try {
+          const users = await checkmarkReaction.users.fetch();
+          const nonBotUsers = users.filter(user => !user.bot);
+          totalReactions += nonBotUsers.size;
+        } catch (err) {
+          console.error(`Error fetching reaction users: ${err}`);
+        }
       }
     }
 
@@ -78,7 +84,7 @@ module.exports = {
         { name: 'Total Jobs Posted', value: count.toString(), inline: true },
         { name: 'Avg Posts per Day', value: avgPerDay, inline: true },
         { name: 'Avg Posts per Week', value: avgPerWeek, inline: true },
-        { name: '✅ Reactions (Applied)', value: totalReactions.toString(), inline: true }
+        { name: '✅ Reactions (Others Applied)', value: totalReactions.toString(), inline: true }
       )
       .setColor(0x1E90FF);
 
