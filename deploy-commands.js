@@ -35,7 +35,7 @@ for (const file of commandFiles) {
       Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
       { body: commands }
     );
-    console.log('✅ Slash commands successfully deployed!');
+    console.log(`✅ Successfully deployed slash commands: ${commandFiles.map(f => '/' + f.replace('.js', '')).join(', ')}`);
   } catch (error) {
     console.error('❌ Error deploying commands:', error);
   }
