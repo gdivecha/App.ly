@@ -37,7 +37,7 @@ module.exports = {
       msg =>
         msg.author.bot &&
         msg.embeds.length > 0 &&
-        msg.content.startsWith('Posted by') // <- important: only count job posts
+        msg.content.startsWith('New Job posted by') // <- important: only count job posts
     );
 
     if (targetUser) {
