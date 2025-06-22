@@ -10,8 +10,7 @@ module.exports = {
   async execute(interaction) {
     const embed = new EmbedBuilder()
       .setTitle('📘 Job Bot Help Menu')
-      .setDescription(`Below is a detailed guide on how to use each command, including what each input means.
-        `)
+      .setDescription(`Below is a detailed guide on how to use each command, including what each input means.\u200B`)
       .setColor(0x1D9BF0)
       .addFields(
         {
@@ -30,9 +29,7 @@ module.exports = {
 - \`salary\`: Salary or hourly rate.
 - **Job Description**: Entered in a modal popup when the command runs.
 **Example:**
-\`/postjob position: SDE Intern company: Amazon location: Remote employmentType: Internship link: https://...\`
- 
-`
+\`/postjob position: SDE Intern company: Amazon location: Remote employmentType: Internship link: https://...\`\u200B`
         },
         {
           name: '📈 /leaderboard',
@@ -44,9 +41,7 @@ module.exports = {
   - \`today\`: Shows job posts from today only.
 **Example:**
 \`/leaderboard range: lastweek\`  
-This displays a ranked list of the top 10 posters with stats like total jobs, reactions, averages, etc.
- 
-`
+This displays a ranked list of the top 10 posters with stats like total jobs, reactions, averages, etc.\u200B`
         },
         {
           name: '📊 /stats',
@@ -60,9 +55,7 @@ This displays a ranked list of the top 10 posters with stats like total jobs, re
 - Date of your last post.
 **Example:**
 \`/stats\`  
-Returns a personalized report on your contributions.
- 
-`
+Returns a personalized report on your contributions.\u200B`
         },
         {
           name: '🏆 /rivals',
@@ -72,9 +65,7 @@ Returns a personalized report on your contributions.
 - Shows your rank, who's ahead, and who's catching up.
 **Example:**
 \`/rivals\`  
-This helps you stay competitive by highlighting your nearest rivals.
- 
-`
+This helps you stay competitive by highlighting your nearest rivals.\u200B`
         }
       )
       .setFooter({ text: 'Stay competitive. Post jobs. Climb the leaderboard. 🧠' });
