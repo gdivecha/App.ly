@@ -42,9 +42,12 @@ module.exports = {
       ].join('\n'))
       .setColor(0x1E90FF);
 
-    await interaction.reply({
-      content: `New Job posted by <@${interaction.user.id}> • <t:${Math.floor(Date.now() / 1000)}:F>`,
-      embeds: [embed]
+    const message = await interaction.reply({
+      content: `New Job posted by <@${interaction.user.id}> • <t:${Math.floor(Date.now() / 1000)}:F>\n✅ *Please react with a check mark if you applied to this job as well.*`,
+      embeds: [embed],
+      fetchReply: true
     });
+
+    await message.react('✅');
   }
 };
