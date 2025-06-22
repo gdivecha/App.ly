@@ -26,7 +26,7 @@ module.exports = {
     const startDate = startDateStr ? new Date(startDateStr) : defaultStartDate;
     const endDate = endDateStr
       ? new Date(endDateStr)
-      : new Date(new Date().setDate(new Date().getDate() + 1)); // default to tomorrow
+      : new Date(new Date().setDate(new Date().getDate() + 1)); // tomorrow
 
     if (isNaN(startDate) || isNaN(endDate)) {
       return await interaction.editReply('❌ Invalid date format. Please use `YYYY-MM-DD`.');
@@ -51,13 +51,23 @@ module.exports = {
     );
 
     const count = filteredMessages.size;
+
     const daysBetween = Math.max(
       1,
-      Math.round((endDate - startDate) / (1000 * 60 * 60 * 24))
+      Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
     );
 
     const avgPerDay = (count / daysBetween).toFixed(2);
     const avgPerWeek = (avgPerDay * 7).toFixed(2);
+
+    let totalReactions = 0;
+
+    for (const msg of filteredMessages.values()) {
+      const checkmarkReaction = msg.reactions.cache.get('✅');
+      if (checkmarkReaction) {
+        totalReactions += checkmarkReaction.count - 1; // subtract the bot's own ✅
+      }
+    }
 
     const embed = new EmbedBuilder()
       .setTitle('📊 Job Posting Stats')
@@ -67,7 +77,8 @@ module.exports = {
         { name: 'End Date', value: endDate.toDateString(), inline: true },
         { name: 'Total Jobs Posted', value: count.toString(), inline: true },
         { name: 'Avg Posts per Day', value: avgPerDay, inline: true },
-        { name: 'Avg Posts per Week', value: avgPerWeek, inline: true }
+        { name: 'Avg Posts per Week', value: avgPerWeek, inline: true },
+        { name: '✅ Reactions (Applied)', value: totalReactions.toString(), inline: true }
       )
       .setColor(0x1E90FF);
 
