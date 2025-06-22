@@ -4,7 +4,7 @@ const { REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
-// Load all command definitions
+// Load all command definitions from the 'commands' folder
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -19,7 +19,7 @@ for (const file of commandFiles) {
 // Set up REST client with bot token
 const rest = new REST().setToken(process.env.DISCORD_TOKEN);
 
-// Deploy to a specific guild
+// Deploy to a specific guild (fast for testing/dev)
 (async () => {
   try {
     if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_GUILD_ID || !process.env.DISCORD_TOKEN) {
@@ -33,7 +33,7 @@ const rest = new REST().setToken(process.env.DISCORD_TOKEN);
       { body: commands }
     );
 
-    console.log('✅ Successfully reloaded application (/) commands.');
+    console.log('✅ Successfully reloaded application (/) commands including leaderboard.');
   } catch (error) {
     console.error('❌ Failed to reload commands:', error);
   }
