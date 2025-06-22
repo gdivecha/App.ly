@@ -121,7 +121,7 @@ module.exports = {
         { name: 'Total Jobs Posted', value: count.toString(), inline: true },
         { name: 'Avg Posts/Day', value: avgPerDay, inline: true },
         { name: 'Avg Posts/Week', value: avgPerWeek, inline: true },
-        { name: '✅ Reactions (Others Applied)', value: totalReactions.toString(), inline: true },
+        { name: 'Reactions (Others Applied)', value: totalReactions.toString(), inline: true },
         { name: 'Avg Reactions/Post', value: avgReactionsPerPost, inline: true },
         { name: 'Most Active Applicant', value: mostActiveApplicant, inline: true },
         { name: 'Longest Posting Streak (Days)', value: longestStreak.toString(), inline: true },
