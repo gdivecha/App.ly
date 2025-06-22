@@ -52,23 +52,27 @@ module.exports = {
 
     const count = filteredMessages.size;
     const daysBetween = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
-    const avgPerDay = (count / daysBetween).toFixed(2);
-    const avgPerWeek = (avgPerDay * 7).toFixed(2);
+    const avgPerWeek = ((count / daysBetween) * 7).toFixed(2);
 
     let totalReactions = 0;
     const applicantCounts = {};
     const datePostMap = {};
+    const posterCounts = {};
 
     for (const msg of filteredMessages.values()) {
       const msgDate = msg.createdAt.toISOString().split('T')[0];
       datePostMap[msgDate] = (datePostMap[msgDate] || 0) + 1;
 
+      const posterMatch = msg.content.match(/<@!?(\d+)>/);
+      const posterId = posterMatch ? posterMatch[1] : null;
+      if (posterId) {
+        posterCounts[posterId] = (posterCounts[posterId] || 0) + 1;
+      }
+
       const checkmarkReaction = msg.reactions.cache.get('✅');
       if (checkmarkReaction) {
         try {
           const users = await checkmarkReaction.users.fetch();
-          const posterMatch = msg.content.match(/<@!?(\d+)>/);
-          const posterId = posterMatch ? posterMatch[1] : null;
           const validUsers = users.filter(user => !user.bot && user.id !== posterId);
           totalReactions += validUsers.size;
 
@@ -88,6 +92,16 @@ module.exports = {
       if (c > maxApplications) {
         maxApplications = c;
         mostActiveApplicant = `<@${userId}>`;
+      }
+    }
+
+    // Most Active Poster
+    let topPoster = 'N/A';
+    let maxPosts = 0;
+    for (const [userId, c] of Object.entries(posterCounts)) {
+      if (c > maxPosts) {
+        maxPosts = c;
+        topPoster = `<@${userId}>`;
       }
     }
 
@@ -129,14 +143,14 @@ module.exports = {
         { name: 'Start Date', value: startDate.toDateString(), inline: true },
         { name: 'End Date', value: endDate.toDateString(), inline: true },
         { name: 'Total Jobs Posted', value: count.toString(), inline: true },
-        { name: 'Avg Posts/Day', value: avgPerDay, inline: true },
         { name: 'Avg Posts/Week', value: avgPerWeek, inline: true },
-        { name: 'Reactions (Others Applied)', value: totalReactions.toString(), inline: true },
         { name: 'Avg Reactions/Post', value: avgReactionsPerPost, inline: true },
-        { name: 'Most Active Applicant', value: mostActiveApplicant, inline: true },
+        { name: 'Reactions (Others Applied)', value: totalReactions.toString(), inline: true },
         { name: 'Longest Posting Streak (Days)', value: longestStreak.toString(), inline: true },
         { name: 'Most Active Posting Date', value: mostActiveDate, inline: true },
-        { name: 'Time Since Last Post', value: timeSinceLastPost, inline: true }
+        { name: 'Time Since Last Post', value: timeSinceLastPost, inline: true },
+        { name: 'Top Poster', value: topPoster, inline: true },
+        { name: 'Most Active Reactor', value: mostActiveApplicant, inline: true },
       )
       .setColor(0x1E90FF);
 
