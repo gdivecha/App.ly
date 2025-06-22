@@ -4,13 +4,13 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('stats')
     .setDescription('View job application statistics')
-    .addUserOption(option =>
-      option.setName('user').setDescription('Filter by user (optional)')
-    )
     .addStringOption(option =>
       option.setName('startdate')
         .setDescription('Start date (YYYY-MM-DD)')
         .setRequired(true)
+    )
+    .addUserOption(option =>
+      option.setName('user').setDescription('Filter by user (optional)')
     )
     .addStringOption(option =>
       option.setName('enddate').setDescription('End date (YYYY-MM-DD, optional)')
@@ -27,7 +27,7 @@ module.exports = {
     const startDate = new Date(startDateStr);
     const endDate = endDateStr
       ? new Date(endDateStr)
-      : new Date(new Date().setDate(new Date().getDate() + 1)); // tomorrow
+      : new Date(new Date().setDate(new Date().getDate() + 1)); // default to tomorrow
 
     if (isNaN(startDate) || isNaN(endDate)) {
       return await interaction.editReply('❌ Invalid date format. Please use `YYYY-MM-DD`.');
