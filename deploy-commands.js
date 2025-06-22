@@ -1,10 +1,10 @@
-require('dotenv').config(); // Load variables from .env
+require('dotenv').config();
 
 const { REST, Routes } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
-// Prepare all slash commands from the 'commands' folder
+// Load all command definitions from /commands
 const commands = [];
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
@@ -14,30 +14,29 @@ for (const file of commandFiles) {
   if (command.data && typeof command.data.toJSON === 'function') {
     commands.push(command.data.toJSON());
   } else {
-    console.warn(`⚠️ Skipped "${file}" – invalid or missing .data`);
+    console.warn(`⚠️ Skipped "${file}" – invalid or missing .data.toJSON()`);
   }
 }
 
-// Set up REST client with Discord bot token
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
-
-// Deploy to a specific guild for quick testing
+// Deploy the commands to your Discord guild
 (async () => {
+  const { DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN } = process.env;
+
+  if (!DISCORD_CLIENT_ID || !DISCORD_GUILD_ID || !DISCORD_TOKEN) {
+    console.error('❌ Missing DISCORD_CLIENT_ID, DISCORD_GUILD_ID, or DISCORD_TOKEN in your .env file.');
+    process.exit(1);
+  }
+
+  const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+
   try {
-    const { DISCORD_CLIENT_ID, DISCORD_GUILD_ID } = process.env;
-    if (!DISCORD_CLIENT_ID || !DISCORD_GUILD_ID || !process.env.DISCORD_TOKEN) {
-      throw new Error('❌ Missing DISCORD_TOKEN, DISCORD_CLIENT_ID, or DISCORD_GUILD_ID in .env');
-    }
-
-    console.log(`🔄 Refreshing ${commands.length} application (/) commands for guild ${DISCORD_GUILD_ID}...`);
-
+    console.log(`🔁 Deploying ${commands.length} slash command(s) to guild ${DISCORD_GUILD_ID}...`);
     await rest.put(
       Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
       { body: commands }
     );
-
-    console.log('✅ Successfully reloaded all commands including leaderboard.');
+    console.log('✅ Slash commands successfully deployed!');
   } catch (error) {
-    console.error('❌ Failed to reload commands:', error);
+    console.error('❌ Error deploying commands:', error);
   }
 })();
