@@ -10,9 +10,10 @@ module.exports = {
   async execute(interaction) {
     const embed = new EmbedBuilder()
       .setTitle('📘 Job Bot Help Menu')
-      .setDescription(`Below is a detailed guide on how to use each command, including what each input means.\u200B`)
+      .setDescription(`Below is a detailed guide on how to use each command, including what each input means.`)
       .setColor(0x1D9BF0)
       .addFields(
+        { name: '\u200B', value: '\u200B' },
         {
           name: '📝 /postjob',
           value: `**Purpose:** Post a new job listing in the current channel.
