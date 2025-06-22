@@ -26,7 +26,7 @@ module.exports = {
     const startDate = startDateStr ? new Date(startDateStr) : defaultStartDate;
     const endDate = endDateStr
       ? new Date(endDateStr)
-      : new Date(new Date().setDate(new Date().getDate() + 1)); // tomorrow
+      : new Date(new Date().setDate(new Date().getDate() + 1)); // default to tomorrow
 
     if (isNaN(startDate) || isNaN(endDate)) {
       return await interaction.editReply('❌ Invalid date format. Please use `YYYY-MM-DD`.');
@@ -37,7 +37,7 @@ module.exports = {
       msg =>
         msg.author.bot &&
         msg.embeds.length > 0 &&
-        msg.content.startsWith('New Job posted by') // <- important: only count job posts
+        msg.content.startsWith('New Job posted by')
     );
 
     if (targetUser) {
@@ -51,6 +51,13 @@ module.exports = {
     );
 
     const count = filteredMessages.size;
+    const daysBetween = Math.max(
+      1,
+      Math.round((endDate - startDate) / (1000 * 60 * 60 * 24))
+    );
+
+    const avgPerDay = (count / daysBetween).toFixed(2);
+    const avgPerWeek = (avgPerDay * 7).toFixed(2);
 
     const embed = new EmbedBuilder()
       .setTitle('📊 Job Posting Stats')
@@ -58,7 +65,9 @@ module.exports = {
         { name: 'User', value: targetUser ? `<@${targetUser.id}>` : 'All users', inline: true },
         { name: 'Start Date', value: startDate.toDateString(), inline: true },
         { name: 'End Date', value: endDate.toDateString(), inline: true },
-        { name: 'Total Jobs Posted', value: count.toString(), inline: true }
+        { name: 'Total Jobs Posted', value: count.toString(), inline: true },
+        { name: 'Avg Posts per Day', value: avgPerDay, inline: true },
+        { name: 'Avg Posts per Week', value: avgPerWeek, inline: true }
       )
       .setColor(0x1E90FF);
 
