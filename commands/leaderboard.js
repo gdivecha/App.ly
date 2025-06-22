@@ -30,14 +30,12 @@ module.exports = {
     let description = '';
     for (let i = 0; i < sorted.length; i++) {
       const [userId, count] = sorted[i];
-      const user = await interaction.client.users.fetch(userId).catch(() => null);
-      const username = user ? `@${user.username}` : `<@${userId}>`;
-      description += `**#${i + 1}** ${username}\n${count} job posting${count > 1 ? 's' : ''}\n\n`;
+      description += `**#${i + 1}** <@${userId}>\n${count} job posting${count > 1 ? 's' : ''}\n\n`;
     }
 
     const embed = new EmbedBuilder()
       .setTitle('📈 Job Posting Leaderboard')
-      .setDescription(description || 'No data yet.')
+      .setDescription(description || 'No job postings yet.')
       .setColor(0x1E90FF);
 
     await interaction.editReply({ embeds: [embed] });
