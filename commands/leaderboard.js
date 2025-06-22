@@ -19,14 +19,16 @@ module.exports = {
     const channel = interaction.channel;
     const range = interaction.options.getString('range') || 'alltime';
     const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startDate = range === 'lastweek'
+      ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      : new Date('2025-06-20');
 
     const messages = await channel.messages.fetch({ limit: 100 });
     const filtered = messages.filter(msg =>
       msg.author.bot &&
       msg.content.startsWith('New Job posted by') &&
       msg.embeds.length > 0 &&
-      (range === 'alltime' || msg.createdAt >= oneWeekAgo)
+      msg.createdAt >= startDate
     );
 
     const userStats = {};
@@ -35,6 +37,7 @@ module.exports = {
       const match = msg.content.match(/<@!?(\d+)>/);
       if (!match) continue;
       const userId = match[1];
+
       if (!userStats[userId]) {
         userStats[userId] = {
           postCount: 0,
@@ -42,6 +45,7 @@ module.exports = {
           totalReactions: 0
         };
       }
+
       userStats[userId].postCount++;
       if (msg.createdAt > userStats[userId].lastPost) {
         userStats[userId].lastPost = msg.createdAt;
@@ -59,30 +63,35 @@ module.exports = {
       }
     }
 
-    const sorted = Object.entries(userStats).sort((a, b) => b[1].postCount - a[1].postCount);
+    const sorted = Object.entries(userStats)
+      .sort((a, b) => b[1].postCount - a[1].postCount)
+      .slice(0, 10);
+
+    const rankEmojis = ['🥇', '🥈', '🥉'];
+
+    const daysInRange = Math.max(
+      1,
+      Math.ceil((now - startDate) / (1000 * 60 * 60 * 24))
+    );
 
     let description = '';
+
     for (let i = 0; i < sorted.length; i++) {
       const [userId, stats] = sorted[i];
-      const daysAgo = Math.floor((now - stats.lastPost) / (1000 * 60 * 60 * 24));
-      const minutesAgo = Math.floor((now - stats.lastPost) / (1000 * 60)) % 60;
-      const timeAgo = `${daysAgo > 0 ? `${daysAgo}d ` : ''}${minutesAgo}m ago`;
+      const avgReactions = (stats.totalReactions / stats.postCount).toFixed(1);
+      const avgPostsPerWeek = ((stats.postCount / daysInRange) * 7).toFixed(1);
 
-      description += `**#${i + 1}** <@${userId}>
-` +
-        `🧾 ${stats.postCount} post${stats.postCount !== 1 ? 's' : ''}
-` +
-        `✅ ${stats.totalReactions} total applicant${stats.totalReactions !== 1 ? 's' : ''}
-` +
-        `⏱️ Last posted ${timeAgo}
-
-`;
+      const rankIcon = rankEmojis[i] || `#${i + 1}`;
+      description += `${rankIcon} <@${userId}>\n` +
+        `${stats.postCount} total job post${stats.postCount !== 1 ? 's' : ''}・` +
+        `${stats.totalReactions} reaction${stats.totalReactions !== 1 ? 's' : ''}・` +
+        `${avgReactions} Avg Reactions/Post・${avgPostsPerWeek} Avg Posts/Week\n\n`;
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('📈 Job Posting Leaderboard')
+      .setTitle('📊 Job Posting Leaderboard')
       .setDescription(description || 'No data available.')
-      .setColor(0x1E90FF)
+      .setColor(0x00BFFF)
       .setFooter({ text: `Range: ${range === 'lastweek' ? 'Last 7 Days' : 'All Time'}` });
 
     await interaction.editReply({ embeds: [embed] });
