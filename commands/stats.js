@@ -24,7 +24,9 @@ module.exports = {
 
     const defaultStartDate = new Date('2025-06-20');
     const startDate = startDateStr ? new Date(startDateStr) : defaultStartDate;
-    const endDate = endDateStr ? new Date(endDateStr) : new Date(new Date().setDate(new Date().getDate() + 1));
+    const endDate = endDateStr
+      ? new Date(endDateStr)
+      : new Date(new Date().setDate(new Date().getDate() + 1)); // tomorrow
 
     if (isNaN(startDate) || isNaN(endDate)) {
       return await interaction.editReply('❌ Invalid date format. Please use `YYYY-MM-DD`.');
@@ -49,7 +51,6 @@ module.exports = {
     );
 
     const count = filteredMessages.size;
-
     const daysBetween = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)));
     const avgPerDay = (count / daysBetween).toFixed(2);
     const avgPerWeek = (avgPerDay * 7).toFixed(2);
@@ -60,9 +61,7 @@ module.exports = {
 
     for (const msg of filteredMessages.values()) {
       const msgDate = msg.createdAt.toISOString().split('T')[0];
-
-      if (!datePostMap[msgDate]) datePostMap[msgDate] = 0;
-      datePostMap[msgDate]++;
+      datePostMap[msgDate] = (datePostMap[msgDate] || 0) + 1;
 
       const checkmarkReaction = msg.reactions.cache.get('✅');
       if (checkmarkReaction) {
@@ -73,10 +72,9 @@ module.exports = {
           const validUsers = users.filter(user => !user.bot && user.id !== posterId);
           totalReactions += validUsers.size;
 
-          validUsers.forEach(user => {
-            if (!applicantCounts[user.id]) applicantCounts[user.id] = 0;
-            applicantCounts[user.id]++;
-          });
+          for (const user of validUsers.values()) {
+            applicantCounts[user.id] = (applicantCounts[user.id] || 0) + 1;
+          }
         } catch (err) {
           console.error(`Error fetching reaction users: ${err}`);
         }
@@ -86,19 +84,21 @@ module.exports = {
     // Most Active Applicant
     let mostActiveApplicant = 'N/A';
     let maxApplications = 0;
-    for (const [userId, count] of Object.entries(applicantCounts)) {
-      if (count > maxApplications) {
-        maxApplications = count;
+    for (const [userId, c] of Object.entries(applicantCounts)) {
+      if (c > maxApplications) {
+        maxApplications = c;
         mostActiveApplicant = `<@${userId}>`;
       }
     }
 
     // Longest Posting Streak
     const sortedDates = Object.keys(datePostMap).sort();
-    let longestStreak = 0, currentStreak = 0, prevDate = null;
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let prevDate = null;
     for (const dateStr of sortedDates) {
       const date = new Date(dateStr);
-      if (prevDate && (date - prevDate) === 86400000) {
+      if (prevDate && (date - prevDate === 86400000)) {
         currentStreak++;
       } else {
         currentStreak = 1;
@@ -109,8 +109,18 @@ module.exports = {
 
     // Most Active Posting Date
     const mostActiveDate = Object.entries(datePostMap).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
-
     const avgReactionsPerPost = count > 0 ? (totalReactions / count).toFixed(2) : '0.00';
+
+    // Time Since Last Post
+    let timeSinceLastPost = 'N/A';
+    if (filteredMessages.size > 0) {
+      const lastPost = [...filteredMessages.values()].sort((a, b) => b.createdAt - a.createdAt)[0];
+      const now = new Date();
+      const diffMs = now - lastPost.createdAt;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffMins = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60));
+      timeSinceLastPost = `${diffDays > 0 ? `${diffDays}d ` : ''}${diffMins}m`;
+    }
 
     const embed = new EmbedBuilder()
       .setTitle('📊 Job Posting Stats')
@@ -125,7 +135,8 @@ module.exports = {
         { name: 'Avg Reactions/Post', value: avgReactionsPerPost, inline: true },
         { name: 'Most Active Applicant', value: mostActiveApplicant, inline: true },
         { name: 'Longest Posting Streak (Days)', value: longestStreak.toString(), inline: true },
-        { name: 'Most Active Posting Date', value: mostActiveDate, inline: true }
+        { name: 'Most Active Posting Date', value: mostActiveDate, inline: true },
+        { name: 'Time Since Last Post', value: timeSinceLastPost, inline: true }
       )
       .setColor(0x1E90FF);
 
